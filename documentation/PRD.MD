@@ -7,16 +7,19 @@ A system to monitor a Coda database (PeopleDatabase) and automatically trigger e
 The current Coda automation system only runs daily due to plan limitations, which is not frequent enough for our needs. We need a solution that can monitor and trigger actions more frequently.
 
 ## Solution
-Create a custom monitoring system that:
-1. Connects to Coda's API to monitor the PeopleDatabase
-2. Checks for new rows every 15 minutes
-3. Triggers the "Send Emails" button functionality for new entries
-4. Deploys on Vercel for reliable hosting
+Create a custom system that:
+1.  Receives notifications via webhooks when the Coda `PeopleDatabase` is updated.
+2.  Identifies rows ready for email sending based on these notifications.
+3.  Triggers the "Send Emails" button functionality for relevant entries via the Coda API.
+4.  Is deployed on Vercel for reliable hosting.
+
+*(Note: This replaces the previous polling mechanism which was limited by Vercel's cron job frequency.)*
 
 ## Technical Specifications
 
 ### Data Source
-- Database: PeopleDatabase in Coda
+- Primary Database: `PeopleDatabase` in Coda
+- **Upstream Data Flow:** Data originates in Typeform, syncs daily to an intermediate Coda table (`Typeform Responses DB`), and is then transferred to `PeopleDatabase` via a daily Coda automation using an "Export" button with `AddOrModifyRows` logic (matching on Email). This external system only monitors `PeopleDatabase`.
 - Key Column: "Send Emails" (button column)
 - Monitoring Column: "Sent Emails" (tracks email sending status)
 - Other Important Columns:
@@ -26,6 +29,7 @@ Create a custom monitoring system that:
   - "Send Updates": System control column
   - "LOCK": System control column
   - "Update Emails": System control column
+- **Webhook Trigger Source:** Changes (row additions/updates) in `PeopleDatabase`.
 
 ### Technical Requirements
 1. Authentication:
@@ -33,10 +37,11 @@ Create a custom monitoring system that:
    - Required API permissions: table read/write access
 
 2. Core Functionality:
-   - Monitor for new rows in PeopleDatabase
-   - Identify rows where "Send Emails" button is active
-   - Trigger email sending functionality (Note: The actual email composition and sending logic resides within the Coda formula itself; this system only initiates the trigger via API.)
-   - Track button state changes (deactivation after emails are sent)
+   - **React instantly to changes in `PeopleDatabase` via webhooks.**
+   - Identify rows where the "Send Emails" button should be triggered based on webhook payload or subsequent API checks.
+   - Trigger the "Send Emails" button's Coda formula execution via the API.
+   - *(Initial data population from Typeform is handled by internal Coda automations, not this external system).*
+   - Track button state changes (deactivation after emails are sent - handled by Coda formula).
    - Handle concurrent updates using LOCK mechanism
 
 3. Infrastructure:
@@ -50,13 +55,13 @@ Create a custom monitoring system that:
 
 ### API Integration
 1. Required Coda API Endpoints:
-   - GET /docs/{docId}/tables/{tableId}/rows (List rows)
-   - PUT /docs/{docId}/tables/{tableId}/rows/{rowId} (Update row)
-   - POST /docs/{docId}/tables/{tableId}/rows (Create row)
+   - GET /docs/{docId}/tables/{tableId}/rows (Potentially needed to fetch row details after webhook trigger)
+   - PUT /docs/{docId}/tables/{tableId}/rows/{rowId} (To trigger the button press - likely by updating a control column or directly invoking button action if API supports)
+   - **Potentially: POST /docs/{docId}/tables/{tableIdOrName}/buttons/{buttonIdOrName}/push (If pushing buttons directly is feasible/preferred)**
 
 2. Webhook Configuration:
-   - Setup Vercel endpoint for webhook reception
-   - Configure Coda webhook for table updates (if available)
+   - Setup Vercel endpoint (e.g., `/api/webhook/coda`) to receive webhook notifications from Coda.
+   - Configure Coda webhook to send notifications on row changes (additions/updates) in the `PeopleDatabase` table.
 
 ### MVP Features
 1. Basic row monitoring system

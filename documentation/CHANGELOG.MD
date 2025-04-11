@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pagination handling to properly fetch all rows from large Coda tables
 
 ### Fixed
+- Adjusted Vercel cron schedule to daily (`0 0 * * *`) due to Hobby plan limitations.
 - Environment variable handling for different table ID formats
 - Button detection logic to correctly identify rows needing email updates
 - Column name to column ID mapping for reliable API interaction
