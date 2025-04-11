@@ -13,9 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated documentation for automated deployment
 - Comprehensive testing infrastructure with unit and integration tests
 - Test coverage configuration and thresholds
+- Column ID mapping to handle Coda API responses correctly
+- Formula-based testing to verify implementation against Coda formulas
+- Pagination handling to properly fetch all rows from large Coda tables
 
 ### Fixed
 - Environment variable handling for different table ID formats
+- Button detection logic to correctly identify rows needing email updates
+- Column name to column ID mapping for reliable API interaction
+- Limited result set issue by implementing proper API pagination
 
 ## [1.0.0] - 2023-12-01
 

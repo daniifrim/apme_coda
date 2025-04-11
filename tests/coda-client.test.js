@@ -32,29 +32,75 @@ describe('Coda Client', () => {
   });
 
   test('should fetch all rows from Coda API', async () => {
-    // Mock axios response
-    const mockRows = [
+    // Mock axios response with pagination
+    const mockRows1 = [
       { id: 'row1', values: {} },
       { id: 'row2', values: {} }
     ];
     
-    axios.get.mockResolvedValue({
-      data: { items: mockRows }
+    const mockRows2 = [
+      { id: 'row3', values: {} },
+      { id: 'row4', values: {} }
+    ];
+    
+    // First response includes a nextPageToken
+    axios.get.mockResolvedValueOnce({
+      data: { 
+        items: mockRows1,
+        nextPageToken: 'next_page_token_123'
+      }
+    });
+    
+    // Second response has no nextPageToken (last page)
+    axios.get.mockResolvedValueOnce({
+      data: { 
+        items: mockRows2,
+        nextPageToken: null
+      }
     });
     
     const rows = await codaClient.getAllRows();
     
-    expect(axios.get).toHaveBeenCalledTimes(1);
-    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('/rows'));
-    expect(rows).toEqual(mockRows);
+    // Should make two API calls due to pagination
+    expect(axios.get).toHaveBeenCalledTimes(2);
+    expect(axios.get).toHaveBeenNthCalledWith(1, expect.stringContaining('/rows'), { params: {} });
+    expect(axios.get).toHaveBeenNthCalledWith(2, expect.stringContaining('/rows'), { 
+      params: { pageToken: 'next_page_token_123' } 
+    });
+    
+    // Should combine rows from both pages
+    expect(rows.length).toBe(4);
+    expect(rows[0].id).toBe('row1');
+    expect(rows[3].id).toBe('row4');
   });
 
   test('should filter rows needing updates', async () => {
     // Mock axios response
     const mockRows = [
-      { id: 'row1', values: { 'Send Emails': { hasButton: true } } },
-      { id: 'row2', values: { 'Send Emails': { hasButton: false } } },
-      { id: 'row3', values: {} }
+      { 
+        id: 'row1', 
+        values: { 
+          'c-BsPL0mykIf': false,  // LOCK = false 
+          'c-ns-fR1RcVI': 0,      // Nr Sent Emails = 0
+          'c-syKpSAs40V': '{"formatType":"button","disabled":false}' // Send Emails active
+        } 
+      },
+      { 
+        id: 'row2', 
+        values: { 
+          'c-BsPL0mykIf': true,   // LOCK = true
+          'c-ns-fR1RcVI': 0,      // Nr Sent Emails = 0
+          'c-syKpSAs40V': '{"formatType":"button","disabled":false}' // Send Emails active
+        } 
+      },
+      { 
+        id: 'row3', 
+        values: { 
+          'c-BsPL0mykIf': false,  // LOCK = false
+          'c-ns-fR1RcVI': 1,      // Nr Sent Emails = 1
+          'c-syKpSAs40V': '{"formatType":"button","disabled":true}' // Send Emails disabled
+        } 
+      }
     ];
     
     axios.get.mockResolvedValue({
@@ -76,7 +122,7 @@ describe('Coda Client', () => {
     
     expect(axios.post).toHaveBeenCalledTimes(1);
     expect(axios.post).toHaveBeenCalledWith(
-      expect.stringContaining('/row1/buttons/Send Emails')
+      expect.stringContaining('/row1/buttons/c-syKpSAs40V')
     );
   });
 
