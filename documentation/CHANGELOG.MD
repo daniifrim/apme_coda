@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- External cron job integration with cron-job.org for more frequent monitoring (every 2 minutes)
+- New secure API endpoint (`/api/cron-trigger`) for external scheduling services
+- Authentication system for cron job triggers to prevent unauthorized access
 - Programmatic Vercel deployment scripts (Node.js and Bash versions)
 - Additional npm scripts for easier project management
 - Updated documentation for automated deployment
