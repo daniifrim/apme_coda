@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "functions": {
+    "api/monitor.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/monitor",
+      "schedule": "*/15 * * * *"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+} 

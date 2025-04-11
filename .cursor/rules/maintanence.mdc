@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+I always need to refer to the [CHANGELOG.MD](mdc:documentation/CHANGELOG.MD) file to review our previous work. After making significant changes, it's essential to update the changelog.md file to ensure proper maintenance of the codebase.
