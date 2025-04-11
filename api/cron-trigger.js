@@ -5,8 +5,8 @@
  * to trigger the email sending process.
  */
 
-const { runMonitoringCycle } = require('../src/monitoring/scheduler');
-const { logInfo, logError } = require('../src/utils/logger');
+const { runMonitoringCycle } = require('../monitoring/scheduler');
+const { logInfo, logError } = require('../utils/logger');
 const crypto = require('crypto');
 
 // Constant-time string comparison to prevent timing attacks
